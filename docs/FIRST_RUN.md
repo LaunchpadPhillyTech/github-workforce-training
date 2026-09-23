@@ -1,21 +1,15 @@
 # First Run / Instructor Setup
 
-This downloadable demo intentionally does not ship `node_modules`.
+This downloadable workspace intentionally does not ship `node_modules`. The root lockfile and pnpm version are committed so local and CI checks use the same dependency graph.
 
 After placing the repository on GitHub:
 
 ```bash
 corepack enable
-pnpm install
-pnpm ci
-```
-
-Commit the generated `pnpm-lock.yaml` so subsequent CI runs can be changed to:
-
-```yaml
 pnpm install --frozen-lockfile
+pnpm verify
 ```
 
-The included CI workflow uses `--no-frozen-lockfile` so the training repo can run before the first lockfile has been committed.
+`pnpm verify` includes a high-and-critical dependency audit. It needs access to the package registry. Run `pnpm audit:report` to review lower-severity advisories; record relevant findings in the PR.
 
-For a production repository, commit and enforce the lockfile.
+Use `pnpm verify` for the project checks; `pnpm ci` is a pnpm install command. The workspace allows the pinned esbuild install script explicitly, and unreviewed dependency build scripts fail installation.

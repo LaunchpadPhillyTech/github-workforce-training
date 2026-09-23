@@ -6,7 +6,7 @@ Learners should experience promotion gates rather than treating branches as fold
 
 The exercise intentionally contains:
 
-1. A boundary-condition bug in `src/discount.ts`.
+1. A boundary-condition bug in `apps/discount-demo/src/discount.ts`.
 2. Missing test coverage for the exact `$100.00` VIP threshold.
 
 Expected correction:
@@ -22,6 +22,8 @@ expect(calculateOrderTotal({ subtotal: 100, tier: 'vip' })).toBe(85)
 ```
 
 Do not give learners the answer before they complete the review process.
+
+The learner-facing `review-coach` subagent asks questions and requests verification evidence without providing this correction. The older `ai-code-review` skill remains available for other work, but the learner flow uses the coach. Test generation comes only after the learner has stated a test case and expected result.
 
 ## Recommended pairing
 

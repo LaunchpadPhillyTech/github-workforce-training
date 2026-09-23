@@ -15,6 +15,4 @@ describe('calculateOrderTotal', () => {
       'Subtotal cannot be negative'
     );
   });
-
-  // Intentionally missing: VIP subtotal exactly $100.
 });

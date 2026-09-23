@@ -3,14 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.24.0",
   "scripts": {
-    "dev": "tsx src/demo.ts",
+    "dev": "pnpm --filter @liftoff/discount-demo dev",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm -r --if-present typecheck",
     "lint": "eslint .",
-    "build": "tsc -p tsconfig.build.json",
-    "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "build": "pnpm -r --if-present build",
+    "audit:gate": "pnpm audit --audit-level high",
+    "audit:report": "pnpm audit --audit-level low",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm audit:gate"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
@@ -19,6 +22,6 @@
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.44.1",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.11"
   }
 }
