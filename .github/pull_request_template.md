@@ -10,12 +10,25 @@ Describe what changed and why.
 - [ ] `pnpm typecheck`
 - [ ] `pnpm test`
 - [ ] `pnpm build`
+- [ ] `pnpm audit:gate` (high and critical gate)
+- [ ] Lower-severity findings from `pnpm audit:report` were reviewed and noted below.
 - [ ] New/changed behavior has automated tests.
 
-## AI review
-- [ ] Claude Code `ai-code-review` skill was run.
-- [ ] Findings were addressed or documented.
-- [ ] If tests were missing, the `create-tests` skill was run and generated tests were reviewed by a developer.
+## Question-led review
+- [ ] Claude Code `review-coach` asked about requirements, boundaries, tests, structure, and security.
+- [ ] The author answered the questions and addressed or documented evidence gaps.
+- [ ] The author designed missing cases before using any test-generation help.
+
+## Manual and configuration evidence
+Tested commit SHA and environment:
+
+| Step or configuration checked | Expected result | Actual result | Screenshot or evidence link (when relevant) |
+| --- | --- | --- | --- |
+| | | | |
+
+Security and dependency findings, including lower-severity advisories:
+
+<!-- Attach screenshots only for visual or configuration claims. Redact secrets and personal data. CLI-only changes can use reproducible steps and output. -->
 
 ## Promotion gate
 ### feature -> dev
@@ -29,8 +42,9 @@ Describe what changed and why.
 
 ### uat -> main
 - [ ] The merged UAT version was tested in the UAT environment.
+- [ ] Manual steps, observed results, and relevant screenshots or configuration evidence are attached for the tested UAT commit.
 - [ ] Author completed technical UAT validation.
 - [ ] Another developer or stakeholder completed acceptance testing.
-- [ ] AI review is complete.
+- [ ] Question-led review and human acceptance review are complete.
 - [ ] CI passes on UAT.
 - [ ] Approval requested from Lead Developer or Project Manager.

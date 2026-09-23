@@ -18,12 +18,12 @@ By the end of this lab, you should be able to:
 
 - Create a feature branch from `dev`.
 - Make a small code change and add automated tests.
-- Use Claude Code skills to review code and create missing tests.
+- Use the question-led Claude Code review coach before proposing a fix.
 - Open and review pull requests.
 - Work with another developer before code reaches UAT.
 - Test the merged code in UAT, not only on your feature branch.
 - Request final approval from a **Lead Developer or Project Manager** before merging to `main`.
-- Use CI checks as a required gate rather than an optional signal.
+- Use CI checks, dependency auditing, and recorded validation as promotion gates.
 
 ---
 
@@ -56,7 +56,7 @@ By the end of this lab, you should be able to:
 7. A PR to `main` is requested only after UAT passes.
 8. Only a **Lead Developer or Project Manager** can approve the PR to `main`.
 9. CI must pass before promotion.
-10. Claude Code review does not replace human review.
+10. The Claude Code review coach does not replace human review.
 
 ---
 
@@ -100,7 +100,7 @@ If `pnpm` is unavailable:
 
 ```bash
 corepack enable
-corepack prepare pnpm@latest --activate
+corepack prepare pnpm@11.24.0 --activate
 ```
 
 ---
@@ -117,13 +117,13 @@ cd branching-cicd-demo
 Install dependencies:
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 ```
 
 Run the full local verification command:
 
 ```bash
-pnpm ci
+pnpm verify
 ```
 
 Expected checks:
@@ -133,6 +133,7 @@ lint
 -> typecheck
 -> automated tests
 -> build
+-> dependency audit
 ```
 
 All checks should pass at the start of the exercise.
@@ -189,8 +190,8 @@ git branch --show-current
 Read:
 
 ```text
-src/discount.ts
-tests/discount.test.ts
+apps/discount-demo/src/discount.ts
+apps/discount-demo/tests/discount.test.ts
 ```
 
 Acceptance criteria:
@@ -219,36 +220,30 @@ Compare the actual behavior with the acceptance criteria.
 
 ---
 
-# Step 5 - Run the Claude Code AI review skill
+# Step 5 - Work with the question-led review coach
 
-Before writing a fix, ask Claude Code to inspect the current implementation and test coverage.
+Before writing a fix, ask the read-only `review-coach` subagent to inspect the requirement, implementation, and test coverage. In Claude Code, type `@` and select `review-coach (agent)`, or ask Claude to use the `review-coach` subagent.
 
-Run the repository skill:
+Ask Claude Code:
 
 ```text
-/ai-code-review
+Use the review-coach subagent to question my understanding of this change. Do not give me the fix.
 ```
 
-The skill should inspect the current change or code area for:
+The coach should ask you to explain:
 
-- correctness,
-- bugs,
-- acceptance-criteria mismatches,
-- security concerns,
-- error handling,
-- edge cases,
-- unnecessary complexity,
-- automated test coverage,
-- whether tests cover changed behavior,
-- whether existing tests still pass.
+- the relevant acceptance criteria and boundary cases,
+- what the existing tests prove and what they may miss,
+- how you would verify your hypothesis manually,
+- whether naming, workspace placement, and security checks apply.
 
-**Do not blindly accept AI suggestions.** You are responsible for understanding every code change that enters the repository.
+Write down your own hypothesis, expected results, and proposed test cases before changing code. The coach must not provide the solution. You are responsible for understanding every code change that enters the repository.
 
 ---
 
-# Step 6 - If tests are missing, run the test-generation skill
+# Step 6 - Design the missing tests
 
-If the AI review identifies missing automated tests, run:
+If you find a testing gap, first describe the input, expected result, and reason the test matters. Write the Vitest case yourself. If you want help turning your own test design into code after that, run:
 
 ```text
 /create-tests
@@ -257,16 +252,15 @@ If the AI review identifies missing automated tests, run:
 The required flow is:
 
 ```text
-AI review
--> missing test detected
--> create-tests skill
--> developer reviews generated tests
+review-coach questions
+-> learner explains the gap and designs a test
+-> learner writes or reviews the test
 -> run full test suite
--> fix failures
--> run AI review again
+-> investigate failures
+-> review-coach checks the evidence again
 ```
 
-Generated tests are suggestions. Review them before committing.
+Generated tests are suggestions. Review them before committing. Do not use test generation to skip your own reasoning.
 
 Ask yourself:
 
@@ -288,34 +282,35 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm audit:gate
 ```
 
 Or run everything with:
 
 ```bash
-pnpm ci
+pnpm verify
 ```
 
 Do not continue until all checks pass.
 
 ---
 
-# Step 8 - Re-run AI code review
+# Step 8 - Re-run the review coach
 
 Run:
 
 ```text
-/ai-code-review
+Use the review-coach subagent to question my tests, verification, and security evidence.
 ```
 
-Confirm the review explicitly checks whether automated tests are present for your changed behavior.
+Answer the coach's questions with your test cases, commands, observations, and any unresolved risks.
 
-Address valid findings.
+Address gaps you confirm.
 
 Then run:
 
 ```bash
-pnpm ci
+pnpm verify
 ```
 
 again.
@@ -335,7 +330,7 @@ Stage and commit:
 
 ```bash
 git add .
-git commit -m "fix: apply VIP discount at threshold"
+git commit -m "fix: satisfy discount acceptance criteria"
 ```
 
 Push:
@@ -362,7 +357,7 @@ Your PR must include:
 - what changed,
 - the acceptance criteria,
 - automated tests added or updated,
-- AI review completed,
+- review-coach questions answered,
 - local verification completed.
 
 Wait for CI.
@@ -380,8 +375,8 @@ Now update locally:
 ```bash
 git checkout dev
 git pull origin dev
-pnpm install
-pnpm ci
+pnpm install --frozen-lockfile
+pnpm verify
 ```
 
 The shared `dev` branch must be healthy before promotion toward UAT.
@@ -413,8 +408,8 @@ Reviewer:
 git fetch origin
 git checkout dev
 git pull origin dev
-pnpm install
-pnpm ci
+pnpm install --frozen-lockfile
+pnpm verify
 pnpm dev
 ```
 
@@ -447,7 +442,7 @@ Example:
 
 ```bash
 git add .
-git commit -m "test: add reviewer coverage for VIP threshold"
+git commit -m "test: strengthen reviewer coverage"
 git push
 ```
 
@@ -462,7 +457,7 @@ After the reviewer commit, CI must run again and pass.
 Reviewer runs:
 
 ```bash
-pnpm ci
+pnpm verify
 ```
 
 Then the reviewer confirms the PR checklist and approves promotion to UAT.
@@ -488,8 +483,8 @@ Update your local copy:
 ```bash
 git checkout uat
 git pull origin uat
-pnpm install
-pnpm ci
+pnpm install --frozen-lockfile
+pnpm verify
 pnpm dev
 ```
 
@@ -512,7 +507,7 @@ The original author verifies:
 - expected error behavior,
 - no obvious regressions.
 
-Record your result in the PR or team tracking system.
+Record the exact UAT commit and environment, manual steps, expected and actual results, and any relevant screenshots or configuration evidence in the PR. Redact secrets and personal data.
 
 ---
 
@@ -522,42 +517,36 @@ A second developer or stakeholder validates the behavior from the user's point o
 
 They should test the acceptance criteria without relying only on the developer's explanation.
 
-For this exercise:
-
-```text
-VIP subtotal = $99.99  -> no discount
-VIP subtotal = $100.00 -> 15% discount
-VIP subtotal = $150.00 -> 15% discount
-Standard subtotal = $150.00 -> no discount
-```
+For this exercise, the acceptance tester should choose cases below, at, and above the stated boundary, plus a standard customer. They should record observed results without relying on the author's report.
 
 Do not open the PR to `main` until UAT is accepted.
 
 ---
 
-# Step 20 - Run AI review on the release candidate
+# Step 20 - Review release evidence
 
-Before requesting production approval, run Claude Code review against the UAT/release changes:
+Before requesting production approval, use the review coach against the UAT/release changes:
 
 ```text
-/ai-code-review
+Use the review-coach subagent to question the UAT evidence and promotion readiness.
 ```
 
 Confirm:
 
-- no unresolved high-impact findings,
+- no unresolved high-impact risks,
 - automated tests exist,
 - changed behavior is tested,
 - CI passes,
-- UAT is complete.
+- UAT is complete,
+- manual steps, actual results, and relevant screenshots or configuration evidence are attached to the PR.
 
-If the review identifies missing tests, return to:
+If you identify missing tests, design the cases yourself. After you have stated the expected behavior, you may use:
 
 ```text
 /create-tests
 ```
 
-Review the generated tests, run them, and repeat validation.
+Review any generated tests, run them, and repeat validation.
 
 ---
 
@@ -575,8 +564,9 @@ The PR should include:
 - UAT results,
 - acceptance-testing confirmation,
 - CI results,
-- AI-review confirmation,
+- review-coach and human-review confirmation,
 - automated-test confirmation,
+- manual steps, actual results, and relevant screenshots or configuration evidence,
 - known limitations, if any.
 
 ---
@@ -612,15 +602,15 @@ After the Lead Developer or Project Manager approves the PR and all required che
         |
 2. Create feature branch
         |
-3. Implement change
+3. Review-coach questions and learner test design
         |
-4. AI code review
+4. Implement and run checks
         |
 5. Missing tests?
      /      \
    yes       no
     |         |
-create-tests  |
+optional test generation after learner design
     |         |
 review tests  |
     \        /
@@ -650,7 +640,7 @@ review tests  |
         |
 17. second person acceptance testing
         |
-18. AI release review
+18. Release evidence review
         |
 19. uat -> main PR
         |
@@ -678,6 +668,7 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm audit:gate
 ```
 
 If CI fails:
@@ -691,6 +682,8 @@ STOP
 ```
 
 Human approval does not override a failing automated gate.
+
+Run `pnpm audit:report` to review lower-severity findings. See `docs/WORKSPACE_AND_MCP.md` for workspace naming, test placement, and the security checklist for a future local MCP server.
 
 ---
 
@@ -717,9 +710,9 @@ A change is complete only when:
 - [ ] The acceptance criteria are satisfied.
 - [ ] The author ran the code locally.
 - [ ] Automated tests exist for the changed behavior.
-- [ ] Claude Code AI review was run.
+- [ ] The review coach questioned the learner's reasoning and evidence.
 - [ ] Missing tests were created/reviewed when needed.
-- [ ] `pnpm ci` passes.
+- [ ] `pnpm verify` passes.
 - [ ] The feature was merged to `dev`.
 - [ ] Another developer reviewed/tested before UAT.
 - [ ] That reviewer made a meaningful commit.
@@ -727,7 +720,8 @@ A change is complete only when:
 - [ ] The merged UAT version was tested.
 - [ ] The author completed technical UAT validation.
 - [ ] Another developer/stakeholder completed acceptance testing.
-- [ ] The release candidate received AI review.
+- [ ] The release candidate received review-coach and human review.
+- [ ] Manual steps, actual results, and relevant screenshots or configuration evidence are recorded.
 - [ ] The `uat -> main` PR was approved by a Lead Developer or Project Manager.
 - [ ] All production promotion checks passed.
 
@@ -744,4 +738,3 @@ Be ready to explain:
 5. Why must a human review AI-generated tests?
 6. Why should the author not be the only person validating the change?
 7. What is different between approving code for UAT and approving code for production?
-
