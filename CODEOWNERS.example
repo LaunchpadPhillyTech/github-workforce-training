@@ -1,0 +1,4 @@
+# Rename this file to .github/CODEOWNERS after replacing the example team.
+# Use a GitHub team that contains only authorized Lead Developers / Project Managers.
+
+* @your-org/production-approvers
